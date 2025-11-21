@@ -23,6 +23,7 @@ class IndicateurBase(BaseModel):
     type: str
     value: float
     unit: str
+    year: int
 
 
 class IndicateurCreate(IndicateurBase):

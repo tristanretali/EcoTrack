@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Department, Base, Indicateur
 import os
+import random
 
 
 def normalize_data(df_dechet, df_flux_CO2):
@@ -80,6 +81,7 @@ def init_db():
                 departement_id=department.id,
                 value=row["tonnage_t"],
                 unit="t",
+                year=random.randint(2022, 2023),
             )
 
             indicateur_flux_CO2 = Indicateur(
@@ -88,6 +90,7 @@ def init_db():
                 departement_id=department.id,
                 value=row["flux_tCO2e_an-1"],
                 unit="tCO2e/an",
+                year=random.randint(2022, 2023),
             )
 
             session.add_all([indicateur_tonnage, indicateur_flux_CO2])

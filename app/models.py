@@ -34,6 +34,7 @@ class Indicateur(Base):
     departement_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
     value = Column(Float, nullable=False)
     unit = Column(String, nullable=False)
+    year = Column(Integer, nullable=True)
 
 
 Department.indicateurs = relationship("Indicateur", back_populates="department")
