@@ -23,8 +23,10 @@ router = APIRouter()
 
 
 @router.get("/departments/")
-def read_departments(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    departments = get_departments(db, skip=skip, limit=limit)
+def read_departments(
+    skip: int = 0, limit: int = 10, db: Session = Depends(get_db), search: str = None
+):
+    departments = get_departments(db, skip, limit, search)
 
     return departments
 
@@ -55,8 +57,14 @@ def update_existing_department(
 
 
 @router.get("/indicateurs/")
-def read_indicateurs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    indicateurs = get_indicateurs(db, skip=skip, limit=limit)
+def read_indicateurs(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    type: str = None,
+    year: int = None,
+):
+    indicateurs = get_indicateurs(db, skip, limit, type, year)
 
     return indicateurs
 

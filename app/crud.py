@@ -14,14 +14,20 @@ from database import get_db
 from sqlalchemy.exc import IntegrityError
 
 
-def get_departments(session: Session, skip: int = 0, limit: int = 10):
-    departments = (
-        session.query(Department)
-        .options(joinedload(Department.indicateurs))
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+def get_departments(
+    session: Session,
+    skip: int = 0,
+    limit: int = 10,
+    search: str = None,
+):
+
+    query = session.query(Department).options(joinedload(Department.indicateurs))
+
+    if search:
+        query = query.filter(Department.nom_departement.ilike(f"%{search}%"))
+
+    departments = query.offset(skip).limit(limit).all()
+
     return departments
 
 
@@ -71,14 +77,19 @@ def update_department(
     return department
 
 
-def get_indicateurs(session: Session, skip: int = 0, limit: int = 10):
-    indicateurs = (
-        session.query(Indicateur)
-        .options(joinedload(Indicateur.department))
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+def get_indicateurs(
+    session: Session, skip: int = 0, limit: int = 10, type: str = None, year: int = None
+):
+    query = session.query(Indicateur).options(joinedload(Indicateur.department))
+
+    if type:
+        query = query.filter(Indicateur.type == type)
+
+    if year:
+        query = query.filter(Indicateur.year == year)
+
+    indicateurs = query.offset(skip).limit(limit).all()
+
     return indicateurs
 
 
