@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from models import Department, Base, Indicateur
 import os
 
 
@@ -42,9 +43,7 @@ def normalize_data(df_dechet, df_flux_CO2):
         how="inner",
     )
 
-    print(df_combined)
-
-    return df_normalize_dechet, df_normalize_flux_CO2
+    return df_combined
 
 
 def get_db():
@@ -54,9 +53,44 @@ def get_db():
     DF_FLUX_CO2_PATH = os.path.join(BASE_DIR, "..", "data", "flux_CO2.csv")
 
     engine = create_engine(f"sqlite:///{DB_PATH}")
+
     df_dechet = pd.read_csv(DF_DECHET_PATH)
     df_flux_CO2 = pd.read_csv(DF_FLUX_CO2_PATH)
-    df_dechet, df_flux_CO2 = normalize_data(df_dechet, df_flux_CO2)
+    df_combined = normalize_data(df_dechet, df_flux_CO2)
+
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    for index, row in df_combined.iterrows():
+        department = Department(
+            num_departement=row["departement"], nom_departement=row["nom_departement"]
+        )
+
+        session.add(department)
+        session.flush()
+
+        indicateur_tonnage = Indicateur(
+            source="dechets_region.csv (ademe)",
+            type="tonnage_dechets",
+            departement_id=department.id,
+            value=row["tonnage_t"],
+            unit="t",
+        )
+
+        indicateur_flux_CO2 = Indicateur(
+            source="flux_CO2.csv (data.gouv)",
+            type="flux_CO2",
+            departement_id=department.id,
+            value=row["flux_tCO2e_an-1"],
+            unit="tCO2e/an",
+        )
+
+        session.add_all([indicateur_tonnage, indicateur_flux_CO2])
+
+    session.commit()
+    session.close()
 
 
 get_db()
