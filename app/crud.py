@@ -84,7 +84,6 @@ def delete_department(id: int, session: Session = Depends(get_db)):
 
     session.delete(department)
     session.commit()
-    return True
 
 
 def get_indicateurs(
@@ -131,10 +130,8 @@ def create_indicateur(session: Session, indicateur_data: IndicateurCreate):
         )
 
 
-def update_indicateur(
-    id: int, indicator_data: IndicateurUpdate, db: Session = Depends(get_db)
-):
-    indicateur = db.query(Indicateur).get(id)
+def update_indicateur(id: int, indicator_data: IndicateurUpdate, session: Session):
+    indicateur = session.query(Indicateur).get(id)
     if not indicateur:
         raise HTTPException(status_code=404, detail="Indicateur non trouvé")
 
@@ -142,13 +139,13 @@ def update_indicateur(
         if value is not None:
             setattr(indicateur, key, value)
 
-    db.commit()
-    db.refresh(indicateur)
+    session.commit()
+    session.refresh(indicateur)
 
     return indicateur
 
 
-def delete_indicateur(id: int, session: Session = Depends(get_db)):
+def delete_indicateur(id: int, session: Session):
     indicateur = session.query(Indicateur).get(id)
 
     if not indicateur:
@@ -156,7 +153,6 @@ def delete_indicateur(id: int, session: Session = Depends(get_db)):
 
     session.delete(indicateur)
     session.commit()
-    return True
 
 
 def create_user(session: Session, user_data: UserSchema):
@@ -191,5 +187,32 @@ def login_user(session: Session, user_data: UserSchema):
     )
 
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(User).filter(User.id == user_id).first()
+def get_user_by_id(session: Session, user_id: int):
+    return session.query(User).filter(User.id == user_id).first()
+
+
+def get_users(session: Session, skip: int = 0, limit: int = 10):
+    return session.query(User).offset(skip).limit(limit).all()
+
+
+def delete_user(id: int, session: Session):
+    user = session.query(User).get(id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    session.delete(user)
+    session.commit()
+
+
+def change_user_role(id: int, new_role: str, session: Session):
+    user = session.query(User).get(id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    user.role = new_role
+    session.commit()
+    session.refresh(user)
+
+    return user

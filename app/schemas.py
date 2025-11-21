@@ -41,3 +41,7 @@ class UserSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class RoleUpdate(BaseModel):
+    new_role: str

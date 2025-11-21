@@ -11,6 +11,10 @@ from crud import (
     login_user,
     delete_department,
     delete_indicateur,
+    get_users,
+    get_user_by_id,
+    delete_user,
+    change_user_role,
 )
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -21,6 +25,7 @@ from schemas import (
     DepartmentUpdate,
     IndicateurUpdate,
     UserSchema,
+    RoleUpdate,
 )
 from auth import (
     timedelta,
@@ -195,3 +200,67 @@ def login(user_data: UserSchema, db: Session = Depends(get_db)):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/users/")
+def read_users(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut voir la liste des utilisateurs.",
+        )
+    users = get_users(db, skip, limit)
+
+    return users
+
+
+@router.get("/user/{id}")
+def read_user(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut voir les informations d'un utilisateur.",
+        )
+    user = get_user_by_id(db, id)
+
+    return user
+
+
+@router.delete("/user/delete/{id}")
+def delete_existing_user(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut supprimer un utilisateur.",
+        )
+    delete_user(id, db)
+
+
+@router.post("/user/change_role/{id}")
+def change_existing_user_role(
+    id: int,
+    payload: RoleUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut changer le rôle d'un utilisateur.",
+        )
+    user = change_user_role(id, payload.new_role, db)
+
+    return user
