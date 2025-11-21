@@ -12,7 +12,7 @@ from crud import (
     delete_department,
     delete_indicateur,
 )
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import (
@@ -22,6 +22,12 @@ from schemas import (
     IndicateurUpdate,
     UserSchema,
 )
+from auth import (
+    timedelta,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_access_token,
+    get_current_user,
+)
 
 
 router = APIRouter()
@@ -29,7 +35,11 @@ router = APIRouter()
 
 @router.get("/departments/")
 def read_departments(
-    skip: int = 0, limit: int = 10, db: Session = Depends(get_db), search: str = None
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+    search: str = None,
 ):
     departments = get_departments(db, skip, limit, search)
 
@@ -37,7 +47,11 @@ def read_departments(
 
 
 @router.get("/department/{id}")
-def read_department(id: int, db: Session = Depends(get_db)):
+def read_department(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     department = get_department(id, db)
 
     return department
@@ -45,8 +59,15 @@ def read_department(id: int, db: Session = Depends(get_db)):
 
 @router.post("/department/create")
 def create_new_department(
-    department_data: DepartmentCreate, db: Session = Depends(get_db)
+    department_data: DepartmentCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
     department = create_department(db, department_data)
 
     return department
@@ -54,15 +75,32 @@ def create_new_department(
 
 @router.post("/department/update/{id}")
 def update_existing_department(
-    id: int, department_data: DepartmentUpdate, db: Session = Depends(get_db)
+    id: int,
+    department_data: DepartmentUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
     department = update_department(id, department_data, db)
 
     return department
 
 
 @router.delete("/department/delete/{id}")
-def delete_existing_department(id: int, db: Session = Depends(get_db)):
+def delete_existing_department(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
     delete_department(id, db)
 
 
@@ -71,6 +109,7 @@ def read_indicateurs(
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
     type: str = None,
     year: int = None,
 ):
@@ -80,7 +119,11 @@ def read_indicateurs(
 
 
 @router.get("/indicateur/{id}")
-def read_indicateur(id: int, db: Session = Depends(get_db)):
+def read_indicateur(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     indicateur = get_indicateur(id, db)
 
     return indicateur
@@ -88,8 +131,15 @@ def read_indicateur(id: int, db: Session = Depends(get_db)):
 
 @router.post("/indicateur/create")
 def create_new_indicateur(
-    indicator_data: IndicateurCreate, db: Session = Depends(get_db)
+    indicator_data: IndicateurCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
     indicateur = create_indicateur(db, indicator_data)
 
     return indicateur
@@ -97,15 +147,33 @@ def create_new_indicateur(
 
 @router.post("/indicateur/update/{id}")
 def update_existing_indicateur(
-    id: int, indicator_data: IndicateurUpdate, db: Session = Depends(get_db)
+    id: int,
+    indicator_data: IndicateurUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
     indicateur = update_indicateur(id, indicator_data, db)
 
     return indicateur
 
 
 @router.delete("/indicateur/delete/{id}")
-def delete_existing_indicateur(id: int, db: Session = Depends(get_db)):
+def delete_existing_indicateur(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé : seul un administrateur peut modifier un film.",
+        )
+
     delete_indicateur(id, db)
 
 
@@ -119,12 +187,11 @@ def create_new_user(user_data: UserSchema, db: Session = Depends(get_db)):
 @router.post("/login", status_code=201)
 def login(user_data: UserSchema, db: Session = Depends(get_db)):
     user = login_user(db, user_data)
-    # # Génération du JWT
-    # access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    # access_token = create_access_token(
-    #     data={"sub": str(user.id)},
-    #     expires_delta=access_token_expires,
-    # )
 
-    # return {"access_token": access_token, "token_type": "bearer"}
-    return user
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=access_token_expires,
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}

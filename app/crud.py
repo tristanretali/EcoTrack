@@ -189,3 +189,7 @@ def login_user(session: Session, user_data: UserSchema):
         status_code=500,
         detail="invalid_credentials",
     )
+
+
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
