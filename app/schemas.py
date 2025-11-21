@@ -2,13 +2,9 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 
-class DepartmentBase(BaseModel):
+class DepartmentCreate(BaseModel):
     num_departement: int
     nom_departement: str
-
-
-class DepartmentCreate(DepartmentBase):
-    pass
 
 
 class DepartmentUpdate(BaseModel):
@@ -19,22 +15,12 @@ class DepartmentUpdate(BaseModel):
         orm_mode = True
 
 
-class DepartmentRead(DepartmentBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class IndicateurBase(BaseModel):
+class IndicateurCreate(BaseModel):
     source: str
     type: str
     value: float
     unit: str
     year: int
-
-
-class IndicateurCreate(IndicateurBase):
     departement_id: int
 
 
@@ -49,9 +35,9 @@ class IndicateurUpdate(BaseModel):
         orm_mode = True
 
 
-class IndicateurRead(IndicateurBase):
-    id: int
-    departement_id: int
+class UserSchema(BaseModel):
+    email: str = Field(description="Adresse e-mail de l'utilisateur")
+    password: str = Field(description="Mot de passe de l'utilisateur", min_length=3)
 
     class Config:
         orm_mode = True

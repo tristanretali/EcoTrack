@@ -39,3 +39,14 @@ class Indicateur(Base):
 
 Department.indicateurs = relationship("Indicateur", back_populates="department")
 Indicateur.department = relationship("Department", back_populates="indicateurs")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    role = Column(String, nullable=False, default="user")
+
+    __table_args__ = (UniqueConstraint("email", name="uq_email"),)

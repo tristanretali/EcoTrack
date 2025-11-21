@@ -1,14 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import HTTPException, Depends
+from security import verify_password, hash_password
 from sqlalchemy.orm import Session, joinedload
 from typing import List
-from models import Department, Indicateur
+from models import Department, Indicateur, User
 from schemas import (
     DepartmentCreate,
-    DepartmentRead,
     IndicateurCreate,
-    IndicateurRead,
     DepartmentUpdate,
     IndicateurUpdate,
+    UserSchema,
 )
 from database import get_db
 from sqlalchemy.exc import IntegrityError
@@ -136,3 +136,35 @@ def update_indicateur(
     db.refresh(indicateur)
 
     return indicateur
+
+
+def create_user(session: Session, user_data: UserSchema):
+    hashed_pw = hash_password(user_data.password)
+
+    user = User(
+        email=user_data.email,
+        password=hashed_pw,
+    )
+
+    try:
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Conflit : Un utilisateur avec le même mail existe déjà",
+        )
+
+
+def login_user(session: Session, user_data: UserSchema):
+    user = session.query(User).filter(User.email == user_data.email).first()
+    print(user)
+    if user and verify_password(user_data.password, user.password):
+        return user
+    raise HTTPException(
+        status_code=500,
+        detail="invalid_credentials",
+    )

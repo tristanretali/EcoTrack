@@ -1,7 +1,8 @@
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Department, Base, Indicateur
+from models import Department, Base, Indicateur, User
+from security import hash_password
 import os
 import random
 
@@ -94,6 +95,11 @@ def init_db():
             )
 
             session.add_all([indicateur_tonnage, indicateur_flux_CO2])
+
+        user = User(
+            email="admin@gmail.com", password=hash_password("admin"), role="admin"
+        )
+        session.add(user)
 
         session.commit()
         session.close()

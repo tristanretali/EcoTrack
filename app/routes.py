@@ -7,6 +7,8 @@ from crud import (
     create_indicateur,
     update_department,
     update_indicateur,
+    create_user,
+    login_user,
 )
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -16,6 +18,7 @@ from schemas import (
     IndicateurCreate,
     DepartmentUpdate,
     IndicateurUpdate,
+    UserSchema,
 )
 
 
@@ -92,3 +95,24 @@ def update_existing_indicateur(
     indicateur = update_indicateur(id, indicator_data, db)
 
     return indicateur
+
+
+@router.post("/register")
+def create_new_user(user_data: UserSchema, db: Session = Depends(get_db)):
+    user = create_user(db, user_data)
+
+    return user
+
+
+@router.post("/login", status_code=201)
+def login(user_data: UserSchema, db: Session = Depends(get_db)):
+    user = login_user(db, user_data)
+    # # Génération du JWT
+    # access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # access_token = create_access_token(
+    #     data={"sub": str(user.id)},
+    #     expires_delta=access_token_expires,
+    # )
+
+    # return {"access_token": access_token, "token_type": "bearer"}
+    return user
