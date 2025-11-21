@@ -46,7 +46,7 @@ def normalize_data(df_dechet, df_flux_CO2):
     return df_combined
 
 
-def get_db():
+def init_db():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DB_PATH = os.path.join(BASE_DIR, "..", "data", "eco_track.db")
     DF_DECHET_PATH = os.path.join(BASE_DIR, "..", "data", "dechets_region.csv")
@@ -91,6 +91,3 @@ def get_db():
 
     session.commit()
     session.close()
-
-
-get_db()
