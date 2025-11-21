@@ -5,11 +5,18 @@ from crud import (
     get_indicateur,
     create_department,
     create_indicateur,
+    update_department,
+    update_indicateur,
 )
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas import DepartmentCreate, IndicateurCreate
+from schemas import (
+    DepartmentCreate,
+    IndicateurCreate,
+    DepartmentUpdate,
+    IndicateurUpdate,
+)
 
 
 router = APIRouter()
@@ -38,6 +45,15 @@ def create_new_department(
     return department
 
 
+@router.post("/department/update/{id}")
+def update_existing_department(
+    id: int, department_data: DepartmentUpdate, db: Session = Depends(get_db)
+):
+    department = update_department(id, department_data, db)
+
+    return department
+
+
 @router.get("/indicateurs/")
 def read_indicateurs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     indicateurs = get_indicateurs(db, skip=skip, limit=limit)
@@ -53,9 +69,18 @@ def read_indicateur(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/indicateur/create")
-def create_new_indicator(
+def create_new_indicateur(
     indicator_data: IndicateurCreate, db: Session = Depends(get_db)
 ):
     indicateur = create_indicateur(db, indicator_data)
+
+    return indicateur
+
+
+@router.post("/indicateur/update/{id}")
+def update_existing_indicateur(
+    id: int, indicator_data: IndicateurUpdate, db: Session = Depends(get_db)
+):
+    indicateur = update_indicateur(id, indicator_data, db)
 
     return indicateur

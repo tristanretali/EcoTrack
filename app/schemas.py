@@ -11,6 +11,14 @@ class DepartmentCreate(DepartmentBase):
     pass
 
 
+class DepartmentUpdate(BaseModel):
+    num_departement: Optional[int] = None
+    nom_departement: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
 class DepartmentRead(DepartmentBase):
     id: int
 
@@ -28,6 +36,17 @@ class IndicateurBase(BaseModel):
 
 class IndicateurCreate(IndicateurBase):
     departement_id: int
+
+
+class IndicateurUpdate(BaseModel):
+    source: Optional[str] = None
+    type: Optional[str] = None
+    value: Optional[float] = None
+    unit: Optional[str] = None
+    year: Optional[int] = None
+
+    class Config:
+        orm_mode = True
 
 
 class IndicateurRead(IndicateurBase):
