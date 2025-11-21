@@ -4,6 +4,7 @@ from typing import List
 from models import Department, Indicateur
 from schemas import DepartmentCreate, DepartmentRead, IndicateurCreate, IndicateurRead
 from database import get_db
+from sqlalchemy.exc import IntegrityError
 
 
 def get_departments(session: Session, skip: int = 0, limit: int = 10):
@@ -26,6 +27,26 @@ def get_department(id: int, session: Session):
     return department
 
 
+def create_department(session: Session, department_data: DepartmentCreate):
+    department = Department(**department_data.model_dump())
+    try:
+        session.add(department)
+        session.commit()
+        return department_data.model_dump()
+
+    except IntegrityError as e:
+        session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Conflit : Un département avec le même nom ou numéro existe déjà",
+        )
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Une erreur inattendue est survenue: {str(e)}"
+        )
+
+
 def get_indicateurs(session: Session, skip: int = 0, limit: int = 10):
     indicateurs = (
         session.query(Indicateur)
@@ -44,3 +65,22 @@ def get_indicateur(id: int, session: Session):
     if not indicateur:
         raise HTTPException(status_code=404, detail="Indicateur non trouvé")
     return indicateur
+
+
+def create_indicateur(session: Session, indicateur_data: IndicateurCreate):
+    department = session.query(Department).get(indicateur_data.departement_id)
+    print(department)
+    if not department:
+        raise HTTPException(status_code=404, detail="Le département n'existe pas")
+    indicateur = Indicateur(**indicateur_data.model_dump())
+
+    try:
+        session.add(indicateur)
+        session.commit()
+        return indicateur_data.model_dump()
+
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Une erreur inattendue est survenue: {str(e)}"
+        )
