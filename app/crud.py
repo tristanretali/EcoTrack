@@ -77,6 +77,16 @@ def update_department(
     return department
 
 
+def delete_department(id: int, session: Session = Depends(get_db)):
+    department = session.query(Department).get(id)
+    if not department:
+        raise HTTPException(status_code=404, detail="Département non trouvé")
+
+    session.delete(department)
+    session.commit()
+    return True
+
+
 def get_indicateurs(
     session: Session, skip: int = 0, limit: int = 10, type: str = None, year: int = None
 ):
@@ -136,6 +146,17 @@ def update_indicateur(
     db.refresh(indicateur)
 
     return indicateur
+
+
+def delete_indicateur(id: int, session: Session = Depends(get_db)):
+    indicateur = session.query(Indicateur).get(id)
+
+    if not indicateur:
+        raise HTTPException(status_code=404, detail="Indicateur non trouvé")
+
+    session.delete(indicateur)
+    session.commit()
+    return True
 
 
 def create_user(session: Session, user_data: UserSchema):

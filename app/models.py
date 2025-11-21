@@ -37,7 +37,9 @@ class Indicateur(Base):
     year = Column(Integer, nullable=True)
 
 
-Department.indicateurs = relationship("Indicateur", back_populates="department")
+Department.indicateurs = relationship(
+    "Indicateur", back_populates="department", cascade="all, delete"
+)
 Indicateur.department = relationship("Department", back_populates="indicateurs")
 
 

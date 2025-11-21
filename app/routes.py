@@ -9,6 +9,8 @@ from crud import (
     update_indicateur,
     create_user,
     login_user,
+    delete_department,
+    delete_indicateur,
 )
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -59,6 +61,11 @@ def update_existing_department(
     return department
 
 
+@router.delete("/department/delete/{id}")
+def delete_existing_department(id: int, db: Session = Depends(get_db)):
+    delete_department(id, db)
+
+
 @router.get("/indicateurs/")
 def read_indicateurs(
     skip: int = 0,
@@ -95,6 +102,11 @@ def update_existing_indicateur(
     indicateur = update_indicateur(id, indicator_data, db)
 
     return indicateur
+
+
+@router.delete("/indicateur/delete/{id}")
+def delete_existing_indicateur(id: int, db: Session = Depends(get_db)):
+    delete_indicateur(id, db)
 
 
 @router.post("/register")
