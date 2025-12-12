@@ -10,7 +10,7 @@ Il a été difficile de trouver un jeu de données couvrant l’ensemble des com
 
 ## Lancer l'API
 
-pour lancer l'APi vous devez être dans le dossier **app** de l'application et lancer la commande :
+pour lancer l'API vous devez être dans le dossier **app** de l'application et lancer la commande :
 
 ```bash
 uvicorn main:app --reload --host 127.0.0.1 --port 5000
